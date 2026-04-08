@@ -1,892 +1,512 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>HearingLife Certificate Generator</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet"/>
-<style>
-:root {
-  --navy:       #0b1f4a;
-  --navy-mid:   #163272;
-  --navy-light: #1e4096;
-  --gold:       #b8963e;
-  --gold-light: #d4b060;
-  --gold-pale:  #f5ecd4;
-  --cream:      #faf8f3;
-  --white:      #ffffff;
-  --border:     #ddd8cc;
-  --muted:      #7a7060;
-  --text:       #1a1510;
-  --success:    #2d6a4f;
-  --error:      #9b2020;
-  --radius:     6px;
-  --shadow:     0 24px 64px rgba(11,31,74,0.18), 0 4px 16px rgba(11,31,74,0.08);
-}
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>HearingLife Certificate Generator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+    <style>
+        :root {
+            --navy:      #0b1f4a;
+            --navy-mid:   #163272;
+            --navy-light: #1e4096;
+            --gold:       #b8963e;
+            --gold-light: #d4b060;
+            --gold-pale:  #f5ecd4;
+            --cream:      #faf8f3;
+            --white:      #ffffff;
+            --border:     #ddd8cc;
+            --muted:      #7a7060;
+            --text:       #1a1510;
+            --success:    #2d6a4f;
+            --error:      #9b2020;
+            --radius:     6px;
+            --shadow:     0 24px 64px rgba(11,31,74,0.18), 0 4px 16px rgba(11,31,74,0.08);
+        }
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-body {
-  min-height: 100vh;
-  background: var(--navy);
-  font-family: 'Jost', sans-serif;
-  color: var(--text);
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  padding: 48px 20px 64px;
-  position: relative;
-}
+        body {
+            min-height: 100vh;
+            background: var(--navy);
+            font-family: 'Jost', sans-serif;
+            color: var(--text);
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 48px 20px 64px;
+            position: relative;
+        }
 
-body::before {
-  content: '';
-  position: fixed; inset: 0;
-  background:
-    radial-gradient(ellipse 70% 40% at 90% 10%, rgba(184,150,62,0.15) 0%, transparent 55%),
-    radial-gradient(ellipse 60% 60% at 5% 90%,  rgba(30,64,150,0.4)  0%, transparent 55%);
-  pointer-events: none;
-}
+        body::before {
+            content: '';
+            position: fixed; inset: 0;
+            background:
+                radial-gradient(ellipse 70% 40% at 90% 10%, rgba(184,150,62,0.15) 0%, transparent 55%),
+                radial-gradient(ellipse 60% 60% at 5% 90%,  rgba(30,64,150,0.4)  0%, transparent 55%);
+            pointer-events: none;
+        }
 
-/* ── CARD ── */
-.card {
-  background: var(--cream);
-  border-radius: var(--radius);
-  width: 100%;
-  max-width: 580px;
-  box-shadow: var(--shadow);
-  overflow: hidden;
-  position: relative;
-  animation: rise .5s cubic-bezier(.22,1,.36,1) both;
-}
-@keyframes rise { from { opacity:0; transform:translateY(20px); } }
+        .card {
+            background: var(--cream);
+            border-radius: var(--radius);
+            width: 100%;
+            max-width: 580px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            position: relative;
+            animation: rise .5s cubic-bezier(.22,1,.36,1) both;
+        }
+        @keyframes rise { from { opacity:0; transform:translateY(20px); } }
 
-.card-top {
-  background: var(--navy);
-  padding: 32px 40px 28px;
-  position: relative;
-  overflow: hidden;
-}
-.card-top::after {
-  content: '';
-  position: absolute; bottom: 0; left: 0; right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, transparent, var(--gold), var(--gold-light), var(--gold), transparent);
-}
+        .card-top {
+            background: var(--navy);
+            padding: 32px 40px 28px;
+            position: relative;
+            overflow: hidden;
+        }
+        .card-top::after {
+            content: '';
+            position: absolute; bottom: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, var(--gold), var(--gold-light), var(--gold), transparent);
+        }
 
-.top-eyebrow {
-  font-size: 10px;
-  letter-spacing: .2em;
-  text-transform: uppercase;
-  color: var(--gold-light);
-  font-weight: 500;
-  margin-bottom: 10px;
-  display: flex; align-items: center; gap: 8px;
-}
-.top-eyebrow::before, .top-eyebrow::after {
-  content: ''; flex: 1; height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(212,176,96,.4));
-}
-.top-eyebrow::before { background: linear-gradient(90deg, rgba(212,176,96,.4), transparent); }
+        .top-eyebrow {
+            font-size: 10px;
+            letter-spacing: .2em;
+            text-transform: uppercase;
+            color: var(--gold-light);
+            font-weight: 500;
+            margin-bottom: 10px;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .top-eyebrow::before, .top-eyebrow::after {
+            content: ''; flex: 1; height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(212,176,96,.4));
+        }
 
-.card-top h1 {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 30px;
-  font-weight: 500;
-  color: var(--white);
-  line-height: 1.2;
-}
-.card-top p {
-  margin-top: 6px;
-  font-size: 13px;
-  color: rgba(255,255,255,.5);
-  font-weight: 300;
-}
+        .card-top h1 {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 30px;
+            font-weight: 500;
+            color: var(--white);
+            line-height: 1.2;
+        }
+        .card-top p {
+            margin-top: 6px;
+            font-size: 13px;
+            color: rgba(255,255,255,.5);
+            font-weight: 300;
+        }
 
-.card-body { padding: 36px 40px 40px; display: flex; flex-direction: column; gap: 28px; }
+        .card-body { padding: 36px 40px 40px; display: flex; flex-direction: column; gap: 28px; }
 
-/* ── SECTION ── */
-.section { display: flex; flex-direction: column; gap: 16px; }
-.section-heading {
-  font-size: 9.5px;
-  letter-spacing: .18em;
-  text-transform: uppercase;
-  font-weight: 600;
-  color: var(--navy-mid);
-  display: flex; align-items: center; gap: 10px;
-}
-.section-heading::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+        .section { display: flex; flex-direction: column; gap: 16px; }
+        .section-heading {
+            font-size: 9.5px;
+            letter-spacing: .18em;
+            text-transform: uppercase;
+            font-weight: 600;
+            color: var(--navy-mid);
+            display: flex; align-items: center; gap: 10px;
+        }
+        .section-heading::after { content: ''; flex: 1; height: 1px; background: var(--border); }
 
-/* ── FIELDS ── */
-.field { display: flex; flex-direction: column; gap: 6px; }
+        .field { display: flex; flex-direction: column; gap: 6px; }
 
-label {
-  font-size: 11.5px;
-  font-weight: 500;
-  color: var(--navy);
-  letter-spacing: .04em;
-}
+        label {
+            font-size: 11.5px;
+            font-weight: 500;
+            color: var(--navy);
+            letter-spacing: .04em;
+        }
 
-.field-hint {
-  font-size: 11px;
-  color: var(--muted);
-  font-weight: 300;
-  margin-top: -2px;
-}
+        .field-hint {
+            font-size: 11px;
+            color: var(--muted);
+            font-weight: 300;
+            margin-top: -2px;
+        }
 
-input[type="text"],
-input[type="date"],
-select {
-  width: 100%;
-  padding: 11px 14px;
-  border: 1.5px solid var(--border);
-  border-radius: 4px;
-  font-family: 'Jost', sans-serif;
-  font-size: 14px;
-  color: var(--text);
-  background: var(--white);
-  outline: none;
-  transition: border-color .18s, box-shadow .18s;
-  appearance: none;
-  -webkit-appearance: none;
-}
-input:focus, select:focus {
-  border-color: var(--gold);
-  box-shadow: 0 0 0 3px rgba(184,150,62,.14);
-}
-input::placeholder { color: #c0bab0; }
+        input[type="text"],
+        input[type="date"],
+        select {
+            width: 100%;
+            padding: 11px 14px;
+            border: 1.5px solid var(--border);
+            border-radius: 4px;
+            font-family: 'Jost', sans-serif;
+            font-size: 14px;
+            color: var(--text);
+            background: var(--white);
+            outline: none;
+            transition: border-color .18s, box-shadow .18s;
+            appearance: none;
+        }
+        input:focus, select:focus {
+            border-color: var(--gold);
+            box-shadow: 0 0 0 3px rgba(184,150,62,.14);
+        }
 
-.select-wrap { position: relative; }
-.select-wrap::after {
-  content: '▾';
-  position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
-  color: var(--gold); font-size: 13px; pointer-events: none;
-}
+        .select-wrap { position: relative; }
+        .select-wrap::after {
+            content: '▾';
+            position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+            color: var(--gold); font-size: 13px; pointer-events: none;
+        }
 
-/* ── SIGNER ROW ── */
-.signer-row { display: flex; flex-direction: column; gap: 10px; }
-.signer-select-row { display: flex; gap: 10px; align-items: flex-end; }
-.signer-select-row .select-wrap { flex: 1; }
+        .sig-preview {
+            display: none;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            background: var(--gold-pale);
+            border: 1px solid rgba(184,150,62,0.3);
+            border-radius: 4px;
+            font-size: 12px;
+            color: var(--navy-mid);
+        }
+        .sig-preview.visible { display: flex; }
+        .sig-preview img { height: 36px; max-width: 160px; object-fit: contain; }
 
-.sig-preview {
-  display: none;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 14px;
-  background: var(--gold-pale);
-  border: 1px solid rgba(184,150,62,.3);
-  border-radius: 4px;
-  font-size: 12px;
-  color: var(--navy-mid);
-  font-weight: 500;
-}
-.sig-preview.visible { display: flex; }
-.sig-preview img {
-  height: 36px;
-  max-width: 160px;
-  object-fit: contain;
-  filter: contrast(1.1);
-}
-.sig-preview .sig-name { flex: 1; }
-.sig-type-badge {
-  font-size: 9.5px;
-  font-weight: 600;
-  letter-spacing: .1em;
-  text-transform: uppercase;
-  background: var(--navy);
-  color: var(--gold-light);
-  padding: 2px 7px;
-  border-radius: 3px;
-}
+        .add-new-btn {
+            background: none;
+            border: 1.5px dashed var(--border);
+            border-radius: 4px;
+            color: var(--navy-mid);
+            font-family: 'Jost', sans-serif;
+            font-size: 12.5px;
+            padding: 9px 14px;
+            cursor: pointer;
+            width: 100%;
+            transition: all .18s;
+        }
+        .add-new-btn:hover { border-color: var(--gold); color: var(--gold); background: rgba(184,150,62,0.04); }
 
-/* ── ADD NEW SIGNER ── */
-.add-new-btn {
-  background: none;
-  border: 1.5px dashed var(--border);
-  border-radius: 4px;
-  color: var(--navy-mid);
-  font-family: 'Jost', sans-serif;
-  font-size: 12.5px;
-  font-weight: 500;
-  padding: 9px 14px;
-  cursor: pointer;
-  display: flex; align-items: center; gap: 7px;
-  width: 100%;
-  transition: border-color .18s, color .18s, background .18s;
-  letter-spacing: .03em;
-}
-.add-new-btn:hover { border-color: var(--gold); color: var(--gold); background: rgba(184,150,62,.04); }
-.add-new-btn::before { content: '+'; font-size: 16px; line-height: 1; }
+        .new-signer-panel {
+            display: none;
+            flex-direction: column;
+            gap: 12px;
+            padding: 16px;
+            background: rgba(11,31,74,0.04);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+        }
+        .new-signer-panel.open { display: flex; }
 
-.new-signer-panel {
-  display: none;
-  flex-direction: column;
-  gap: 12px;
-  padding: 16px;
-  background: rgba(11,31,74,.04);
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  animation: fadeIn .2s ease both;
-}
-.new-signer-panel.open { display: flex; }
-@keyframes fadeIn { from { opacity:0; transform:translateY(-6px); } }
+        .sig-method-tabs { display: flex; border: 1.5px solid var(--border); border-radius: 4px; overflow: hidden; }
+        .sig-method-tab {
+            flex: 1; padding: 8px; background: var(--white); border: none; font-family: 'Jost'; cursor: pointer;
+        }
+        .sig-method-tab.active { background: var(--navy); color: var(--gold-light); }
 
-.new-signer-panel .panel-title {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: .1em;
-  text-transform: uppercase;
-  color: var(--navy-mid);
-}
+        canvas { width: 100%; height: 100px; background: #fff; border: 1px solid var(--border); display: none; }
+        canvas.visible { display: block; }
 
-.sig-upload-area {
-  border: 1.5px dashed var(--border);
-  border-radius: 4px;
-  padding: 14px;
-  text-align: center;
-  cursor: pointer;
-  transition: border-color .18s, background .18s;
-  position: relative;
-  background: var(--white);
-}
-.sig-upload-area:hover { border-color: var(--gold); background: var(--gold-pale); }
-.sig-upload-area input[type="file"] {
-  position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
-  border: none; padding: 0;
-}
-.sig-upload-area .upload-label {
-  font-size: 12px; color: var(--muted); pointer-events: none;
-}
-.sig-upload-area .upload-label strong { color: var(--navy-mid); }
-.sig-upload-area .sig-drawn-preview {
-  display: none; max-height: 60px; max-width: 100%; object-fit: contain;
-}
+        .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 
-.sig-method-tabs {
-  display: flex; gap: 0; border: 1.5px solid var(--border); border-radius: 4px; overflow: hidden;
-}
-.sig-method-tab {
-  flex: 1; padding: 8px; background: var(--white);
-  border: none; font-family: 'Jost', sans-serif; font-size: 12px; font-weight: 500;
-  color: var(--muted); cursor: pointer; transition: background .15s, color .15s;
-}
-.sig-method-tab.active { background: var(--navy); color: var(--gold-light); }
+        .generate-btn {
+            width: 100%; padding: 16px;
+            background: linear-gradient(135deg, var(--navy) 0%, var(--navy-mid) 100%);
+            border: none; border-radius: 4px;
+            font-family: 'Jost'; font-weight: 600;
+            text-transform: uppercase; color: var(--gold-light); cursor: pointer;
+        }
+        .generate-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-canvas#sigCanvas {
-  width: 100%; height: 100px; background: var(--white);
-  border: 1.5px solid var(--border); border-radius: 4px;
-  cursor: crosshair; touch-action: none; display: none;
-}
-canvas#sigCanvas.visible { display: block; }
-
-.canvas-tools {
-  display: none; justify-content: flex-end;
-}
-.canvas-tools.visible { display: flex; }
-.clear-btn {
-  background: none; border: 1px solid var(--border); border-radius: 3px;
-  font-family: 'Jost', sans-serif; font-size: 11px; color: var(--muted);
-  padding: 4px 10px; cursor: pointer; transition: border-color .15s, color .15s;
-}
-.clear-btn:hover { border-color: var(--error); color: var(--error); }
-
-.panel-actions { display: flex; gap: 10px; }
-.save-signer-btn {
-  flex: 1; padding: 10px; background: var(--navy);
-  border: none; border-radius: 4px;
-  font-family: 'Jost', sans-serif; font-size: 12.5px; font-weight: 500;
-  color: var(--gold-light); cursor: pointer; transition: background .18s;
-}
-.save-signer-btn:hover { background: var(--navy-mid); }
-.cancel-btn {
-  padding: 10px 16px; background: none;
-  border: 1.5px solid var(--border); border-radius: 4px;
-  font-family: 'Jost', sans-serif; font-size: 12.5px; color: var(--muted);
-  cursor: pointer; transition: border-color .15s;
-}
-.cancel-btn:hover { border-color: var(--navy-mid); }
-
-/* ── TWO COL ── */
-.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-
-/* ── GENERATE BUTTON ── */
-.generate-btn {
-  width: 100%; padding: 16px;
-  background: linear-gradient(135deg, var(--navy) 0%, var(--navy-mid) 100%);
-  border: none; border-radius: 4px;
-  font-family: 'Jost', sans-serif; font-size: 13px; font-weight: 600;
-  letter-spacing: .1em; text-transform: uppercase;
-  color: var(--gold-light); cursor: pointer;
-  transition: opacity .18s, transform .12s;
-  position: relative; overflow: hidden;
-}
-.generate-btn::after {
-  content: '';
-  position: absolute; bottom: 0; left: 0; right: 0; height: 2px;
-  background: linear-gradient(90deg, transparent, var(--gold), var(--gold-light), var(--gold), transparent);
-}
-.generate-btn:hover { opacity: .92; }
-.generate-btn:active { transform: scale(.99); }
-.generate-btn:disabled { opacity: .45; cursor: not-allowed; }
-
-.status {
-  text-align: center; font-size: 13px; min-height: 18px;
-  color: var(--muted); font-style: italic;
-  transition: color .2s;
-}
-.status.success { color: var(--success); font-style: normal; font-weight: 500; }
-.status.error   { color: var(--error);   font-style: normal; }
-
-@media (max-width: 500px) {
-  .card-body { padding: 28px 24px 32px; }
-  .card-top  { padding: 28px 24px 24px; }
-  .two-col   { grid-template-columns: 1fr; }
-}
-</style>
+        .status { text-align: center; font-size: 13px; min-height: 20px; margin-top: 10px; }
+        .status.success { color: var(--success); }
+        .status.error { color: var(--error); }
+    </style>
 </head>
 <body>
 
 <div class="card">
-  <div class="card-top">
-    <div class="top-eyebrow">HearingLife Canada</div>
-    <h1>Certificate Generator</h1>
-    <p>Life Changer Awards · Client Excellence Program</p>
-  </div>
-
-  <div class="card-body">
-
-    <!-- CERTIFICATE TYPE -->
-    <div class="section">
-      <div class="section-heading">Certificate</div>
-
-      <div class="field">
-        <label>Certificate Type</label>
-        <div class="select-wrap">
-          <select id="certType">
-            <option value="" disabled selected>— Select a certificate —</option>
-            <option value="2026 -5 Year Life Changer Awards Certificate">2026 · 5 Year Life Changer Award</option>
-            <option value="2026 -10 Year Life Changer Awards Certificate">2026 · 10 Year Life Changer Award</option>
-            <option value="2026 -15 Year Life Changer Awards Certificate">2026 · 15 Year Life Changer Award</option>
-            <option value="2026 -20 Year Life Changer Awards Certificate">2026 · 20 Year Life Changer Award</option>
-            <option value="2026 -25 Year Life Changer Awards Certificate">2026 · 25 Year Life Changer Award</option>
-          </select>
-        </div>
-        <span class="field-hint">Each type loads its corresponding PDF template automatically.</span>
-      </div>
+    <div class="card-top">
+        <div class="top-eyebrow">HearingLife Canada</div>
+        <h1>Certificate Generator</h1>
+        <p>Life Changer Awards · Client Excellence Program</p>
     </div>
 
-    <!-- RECIPIENT -->
-    <div class="section">
-      <div class="section-heading">Recipient</div>
-      <div class="two-col">
-        <div class="field">
-          <label>Award Winner</label>
-          <input type="text" id="awardWinner" placeholder="Full name"/>
-        </div>
-        <div class="field">
-          <label>Date</label>
-          <input type="date" id="certDate"/>
-        </div>
-      </div>
-    </div>
-
-    <!-- SIGNATURES -->
-    <div class="section">
-      <div class="section-heading">Signatures</div>
-
-      <!-- DSD -->
-      <div class="field">
-        <label>DSD — Divisional Sales Director</label>
-        <div class="signer-row" id="dsdSignerRow">
-          <div class="signer-select-row">
-            <div class="select-wrap">
-              <select id="dsdSelect" onchange="onSignerSelect('dsd')">
-                <option value="" disabled selected>— Select DSD —</option>
-              </select>
-            </div>
-          </div>
-          <div class="sig-preview" id="dsdPreview">
-            <img id="dsdSigImg" src="" alt="Signature"/>
-            <span class="sig-name" id="dsdSigName"></span>
-            <span class="sig-type-badge">DSD</span>
-          </div>
-          <button class="add-new-btn" onclick="togglePanel('dsd')">Add new DSD signer</button>
-          <div class="new-signer-panel" id="dsdPanel">
-            <div class="panel-title">New DSD Signer</div>
+    <div class="card-body">
+        <div class="section">
+            <div class="section-heading">Certificate</div>
             <div class="field">
-              <label>Full Name</label>
-              <input type="text" id="dsdNewName" placeholder="e.g. Alex Martin"/>
+                <label>Certificate Type</label>
+                <div class="select-wrap">
+                    <select id="certType">
+                        <option value="" disabled selected>— Select a certificate —</option>
+                        <option value="2026 -5 Year Life Changer Awards Certificate">2026 · 5 Year Life Changer Award</option>
+                        <option value="2026 -10 Year Life Changer Awards Certificate">2026 · 10 Year Life Changer Award</option>
+                        <option value="2026 -15 Year Life Changer Awards Certificate">2026 · 15 Year Life Changer Award</option>
+                        <option value="2026 -20 Year Life Changer Awards Certificate">2026 · 20 Year Life Changer Award</option>
+                        <option value="2026 -25 Year Life Changer Awards Certificate">2026 · 25 Year Life Changer Award</option>
+                    </select>
+                </div>
             </div>
-            <div class="sig-method-tabs">
-              <button class="sig-method-tab active" onclick="setMethod('dsd','upload')">Upload Image</button>
-              <button class="sig-method-tab" onclick="setMethod('dsd','draw')">Draw Signature</button>
-            </div>
-            <div class="sig-upload-area" id="dsdUploadArea">
-              <input type="file" id="dsdSigFile" accept="image/*" onchange="onSigFileChange('dsd')"/>
-              <div class="upload-label"><strong>Click to upload</strong> PNG or JPG signature</div>
-              <img class="sig-drawn-preview" id="dsdFilePreview"/>
-            </div>
-            <canvas id="dsdCanvas"></canvas>
-            <div class="canvas-tools" id="dsdCanvasTools">
-              <button class="clear-btn" onclick="clearCanvas('dsd')">Clear</button>
-            </div>
-            <div class="panel-actions">
-              <button class="cancel-btn" onclick="togglePanel('dsd')">Cancel</button>
-              <button class="save-signer-btn" onclick="saveSigner('dsd')">Save & Select</button>
-            </div>
-          </div>
         </div>
-      </div>
 
-      <!-- RM -->
-      <div class="field">
-        <label>RM — Regional Manager</label>
-        <div class="signer-row" id="rmSignerRow">
-          <div class="signer-select-row">
-            <div class="select-wrap">
-              <select id="rmSelect" onchange="onSignerSelect('rm')">
-                <option value="" disabled selected>— Select RM —</option>
-              </select>
+        <div class="section">
+            <div class="section-heading">Recipient</div>
+            <div class="two-col">
+                <div class="field">
+                    <label>Award Winner</label>
+                    <input type="text" id="awardWinner" placeholder="Full name"/>
+                </div>
+                <div class="field">
+                    <label>Date</label>
+                    <input type="date" id="certDate"/>
+                </div>
             </div>
-          </div>
-          <div class="sig-preview" id="rmPreview">
-            <img id="rmSigImg" src="" alt="Signature"/>
-            <span class="sig-name" id="rmSigName"></span>
-            <span class="sig-type-badge">RM</span>
-          </div>
-          <button class="add-new-btn" onclick="togglePanel('rm')">Add new RM signer</button>
-          <div class="new-signer-panel" id="rmPanel">
-            <div class="panel-title">New RM Signer</div>
+        </div>
+
+        <div class="section">
+            <div class="section-heading">Signatures</div>
+            
             <div class="field">
-              <label>Full Name</label>
-              <input type="text" id="rmNewName" placeholder="e.g. Jordan Lee"/>
+                <label>DSD — Divisional Sales Director</label>
+                <div class="select-wrap">
+                    <select id="dsdSelect" onchange="onSignerSelect('dsd')">
+                        <option value="" disabled selected>— Select DSD —</option>
+                    </select>
+                </div>
+                <div class="sig-preview" id="dsdPreview">
+                    <img id="dsdSigImg" src="" alt="Signature"/>
+                    <span id="dsdSigName"></span>
+                </div>
+                <button class="add-new-btn" onclick="togglePanel('dsd')">+ Add new DSD</button>
+                <div class="new-signer-panel" id="dsdPanel">
+                    <input type="text" id="dsdNewName" placeholder="Full Name"/>
+                    <div class="sig-method-tabs">
+                        <button class="sig-method-tab active" onclick="setMethod('dsd','upload')">Upload</button>
+                        <button class="sig-method-tab" onclick="setMethod('dsd','draw')">Draw</button>
+                    </div>
+                    <div id="dsdUploadArea"><input type="file" id="dsdSigFile" accept="image/*"></div>
+                    <canvas id="dsdCanvas"></canvas>
+                    <button class="generate-btn" style="padding:8px" onclick="saveSigner('dsd')">Save Signer</button>
+                </div>
             </div>
-            <div class="sig-method-tabs">
-              <button class="sig-method-tab active" onclick="setMethod('rm','upload')">Upload Image</button>
-              <button class="sig-method-tab" onclick="setMethod('rm','draw')">Draw Signature</button>
+
+            <div class="field">
+                <label>RM — Regional Manager</label>
+                <div class="select-wrap">
+                    <select id="rmSelect" onchange="onSignerSelect('rm')">
+                        <option value="" disabled selected>— Select RM —</option>
+                    </select>
+                </div>
+                <div class="sig-preview" id="rmPreview">
+                    <img id="rmSigImg" src="" alt="Signature"/>
+                    <span id="rmSigName"></span>
+                </div>
+                <button class="add-new-btn" onclick="togglePanel('rm')">+ Add new RM</button>
+                <div class="new-signer-panel" id="rmPanel">
+                    <input type="text" id="rmNewName" placeholder="Full Name"/>
+                    <div class="sig-method-tabs">
+                        <button class="sig-method-tab active" onclick="setMethod('rm','upload')">Upload</button>
+                        <button class="sig-method-tab" onclick="setMethod('rm','draw')">Draw</button>
+                    </div>
+                    <div id="rmUploadArea"><input type="file" id="rmSigFile" accept="image/*"></div>
+                    <canvas id="rmCanvas"></canvas>
+                    <button class="generate-btn" style="padding:8px" onclick="saveSigner('rm')">Save Signer</button>
+                </div>
             </div>
-            <div class="sig-upload-area" id="rmUploadArea">
-              <input type="file" id="rmSigFile" accept="image/*" onchange="onSigFileChange('rm')"/>
-              <div class="upload-label"><strong>Click to upload</strong> PNG or JPG signature</div>
-              <img class="sig-drawn-preview" id="rmFilePreview"/>
-            </div>
-            <canvas id="rmCanvas"></canvas>
-            <div class="canvas-tools" id="rmCanvasTools">
-              <button class="clear-btn" onclick="clearCanvas('rm')">Clear</button>
-            </div>
-            <div class="panel-actions">
-              <button class="cancel-btn" onclick="togglePanel('rm')">Cancel</button>
-              <button class="save-signer-btn" onclick="saveSigner('rm')">Save & Select</button>
-            </div>
-          </div>
         </div>
-      </div>
-    </div>
 
-    <!-- GENERATE -->
-    <div class="section">
-      <button class="generate-btn" id="generateBtn" onclick="generatePDF()">Generate &amp; Download Certificate</button>
-      <div class="status" id="status"></div>
+        <div class="section">
+            <button class="generate-btn" id="generateBtn" onclick="generatePDF()">Generate Certificate</button>
+            <div class="status" id="status"></div>
+        </div>
     </div>
-
-  </div>
 </div>
 
 <script>
-// ── DATA ──────────────────────────────────────────────────────────────────────
-
-// Pre-loaded signers: { name, role, sig: base64DataURL|null }
-// sig is null for pre-loaded names until a signature is uploaded for them
-const PRELOADED = {
-  dsd: [
-    { name: 'Kelley Keene',          role: 'DSD', sig: null },
-    { name: 'Lynn Veld',             role: 'DSD', sig: null },
-    { name: 'Neda Chelehmalzadeh',   role: 'DSD', sig: null },
-    { name: 'Philippe Nobert',       role: 'DSD', sig: null },
-    { name: 'Rhian Holmes',          role: 'DSD', sig: null },
-    { name: 'Angelo Farneti',        role: 'DSD', sig: null },
-    { name: 'Jessica Quinn',         role: 'DSD', sig: null },
-  ],
-  rm: [
-    { name: 'Adele Gouthro',         role: 'RM', sig: null },
-    { name: 'Cassandra Beach',       role: 'RM', sig: null },
-    { name: 'Chelsea KuhnGrise',     role: 'RM', sig: null },
-    { name: 'Courtney Bell',         role: 'RM', sig: null },
-    { name: 'Jade Smolenaars',       role: 'RM', sig: null },
-    { name: 'Jennifer Vosper',       role: 'RM', sig: null },
-    { name: 'Jessica Quinn',         role: 'RM', sig: null },
-    { name: 'Jillian Mills',         role: 'RM', sig: null },
-    { name: 'Jory Martin',           role: 'RM', sig: null },
-    { name: 'Kevin Daoust',          role: 'RM', sig: null },
-    { name: 'Sonia Miceli',          role: 'RM', sig: null },
-  ]
-};
-
-// Runtime state — loaded from localStorage, merged with preloaded names
-let signers = { dsd: [], rm: [] };
-// Track selected signer index per role
-let selected = { dsd: null, rm: null };
-// Drawing state
-let drawing = { dsd: false, rm: false };
-let drawMethod = { dsd: 'upload', rm: 'upload' };
-let canvasCtx = {};
-
-// ── INIT ──────────────────────────────────────────────────────────────────────
-
-function loadFromStorage() {
-  try {
-    const saved = JSON.parse(localStorage.getItem('hl_signers') || '{}');
-    ['dsd','rm'].forEach(role => {
-      const savedList = saved[role] || [];
-      // Merge: preloaded names + any saved signatures + any new names from storage
-      const merged = PRELOADED[role].map(p => {
-        const match = savedList.find(s => s.name === p.name);
-        return match ? { ...p, sig: match.sig } : { ...p };
-      });
-      // Add any extra names saved that aren't in preloaded
-      savedList.forEach(s => {
-        if (!merged.find(m => m.name === s.name)) merged.push(s);
-      });
-      signers[role] = merged;
-    });
-  } catch(e) {
-    ['dsd','rm'].forEach(role => signers[role] = [...PRELOADED[role]]);
-  }
-}
-
-function saveToStorage() {
-  localStorage.setItem('hl_signers', JSON.stringify(signers));
-}
-
-function buildDropdowns() {
-  ['dsd','rm'].forEach(role => {
-    const sel = document.getElementById(role + 'Select');
-    // Keep first placeholder option
-    while (sel.options.length > 1) sel.remove(1);
-    signers[role].forEach((s, i) => {
-      const opt = document.createElement('option');
-      opt.value = i;
-      opt.textContent = s.name + (s.sig ? ' ✓' : '');
-      sel.appendChild(opt);
-    });
-  });
-}
-
-function initCanvases() {
-  ['dsd','rm'].forEach(role => {
-    const canvas = document.getElementById(role + 'Canvas');
-    canvasCtx[role] = canvas.getContext('2d');
-    canvas.addEventListener('pointerdown', e => startDraw(e, role));
-    canvas.addEventListener('pointermove', e => draw(e, role));
-    canvas.addEventListener('pointerup',   () => drawing[role] = false);
-    canvas.addEventListener('pointerleave',() => drawing[role] = false);
-  });
-}
-
-// ── SIGNER SELECTION ──────────────────────────────────────────────────────────
-
-function onSignerSelect(role) {
-  const sel = document.getElementById(role + 'Select');
-  const idx = parseInt(sel.value);
-  selected[role] = idx;
-  const signer = signers[role][idx];
-  const preview = document.getElementById(role + 'Preview');
-  const img     = document.getElementById(role + 'SigImg');
-  const nameEl  = document.getElementById(role + 'SigName');
-
-  nameEl.textContent = signer.name;
-
-  if (signer.sig) {
-    img.src = signer.sig;
-    img.style.display = 'block';
-  } else {
-    img.style.display = 'none';
-  }
-  preview.classList.add('visible');
-}
-
-// ── ADD NEW SIGNER PANEL ──────────────────────────────────────────────────────
-
-function togglePanel(role) {
-  const panel = document.getElementById(role + 'Panel');
-  const isOpen = panel.classList.contains('open');
-  panel.classList.toggle('open', !isOpen);
-  if (!isOpen) {
-    document.getElementById(role + 'NewName').value = '';
-    clearCanvas(role);
-    resetFileUpload(role);
-    setMethod(role, 'upload');
-  }
-}
-
-function setMethod(role, method) {
-  drawMethod[role] = method;
-  const tabs      = document.querySelectorAll(`#${role}Panel .sig-method-tab`);
-  const uploadArea= document.getElementById(role + 'UploadArea');
-  const canvas    = document.getElementById(role + 'Canvas');
-  const tools     = document.getElementById(role + 'CanvasTools');
-
-  tabs[0].classList.toggle('active', method === 'upload');
-  tabs[1].classList.toggle('active', method === 'draw');
-
-  uploadArea.style.display = method === 'upload' ? 'block' : 'none';
-  canvas.classList.toggle('visible', method === 'draw');
-  tools.classList.toggle('visible',  method === 'draw');
-}
-
-function onSigFileChange(role) {
-  const file = document.getElementById(role + 'SigFile').files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    const prev = document.getElementById(role + 'FilePreview');
-    prev.src = e.target.result;
-    prev.style.display = 'block';
-    document.querySelector(`#${role}UploadArea .upload-label`).style.display = 'none';
-  };
-  reader.readAsDataURL(file);
-}
-
-function resetFileUpload(role) {
-  document.getElementById(role + 'SigFile').value = '';
-  const prev = document.getElementById(role + 'FilePreview');
-  prev.src = ''; prev.style.display = 'none';
-  document.querySelector(`#${role}UploadArea .upload-label`).style.display = 'block';
-}
-
-// ── CANVAS DRAWING ────────────────────────────────────────────────────────────
-
-function getPos(e, canvas) {
-  const r = canvas.getBoundingClientRect();
-  const scaleX = canvas.width  / r.width;
-  const scaleY = canvas.height / r.height;
-  return {
-    x: (e.clientX - r.left) * scaleX,
-    y: (e.clientY - r.top)  * scaleY
-  };
-}
-
-function startDraw(e, role) {
-  const canvas = document.getElementById(role + 'Canvas');
-  canvas.width  = canvas.offsetWidth  * window.devicePixelRatio;
-  canvas.height = canvas.offsetHeight * window.devicePixelRatio;
-  canvasCtx[role] = canvas.getContext('2d');
-  canvasCtx[role].scale(window.devicePixelRatio, window.devicePixelRatio);
-  canvasCtx[role].strokeStyle = '#0b1f4a';
-  canvasCtx[role].lineWidth = 2;
-  canvasCtx[role].lineCap = 'round';
-  canvasCtx[role].lineJoin = 'round';
-  drawing[role] = true;
-  const pos = getPos(e, canvas);
-  canvasCtx[role].beginPath();
-  canvasCtx[role].moveTo(pos.x, pos.y);
-  e.preventDefault();
-}
-
-function draw(e, role) {
-  if (!drawing[role]) return;
-  const canvas = document.getElementById(role + 'Canvas');
-  const pos = getPos(e, canvas);
-  canvasCtx[role].lineTo(pos.x, pos.y);
-  canvasCtx[role].stroke();
-  e.preventDefault();
-}
-
-function clearCanvas(role) {
-  const canvas = document.getElementById(role + 'Canvas');
-  if (canvasCtx[role]) canvasCtx[role].clearRect(0, 0, canvas.width, canvas.height);
-}
-
-function getCanvasDataURL(role) {
-  const canvas = document.getElementById(role + 'Canvas');
-  // Check if anything was drawn
-  const ctx = canvasCtx[role];
-  if (!ctx) return null;
-  const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
-  const hasContent = Array.from(data).some((v, i) => i % 4 === 3 && v > 0);
-  return hasContent ? canvas.toDataURL('image/png') : null;
-}
-
-// ── SAVE SIGNER ───────────────────────────────────────────────────────────────
-
-async function saveSigner(role) {
-  const name = document.getElementById(role + 'NewName').value.trim();
-  if (!name) { alert('Please enter a name.'); return; }
-
-  let sigDataURL = null;
-
-  if (drawMethod[role] === 'upload') {
-    const file = document.getElementById(role + 'SigFile').files[0];
-    if (file) {
-      sigDataURL = await new Promise(res => {
-        const r = new FileReader();
-        r.onload = e => res(e.target.result);
-        r.readAsDataURL(file);
-      });
-    }
-  } else {
-    sigDataURL = getCanvasDataURL(role);
-  }
-
-  // Check if name already exists
-  const existing = signers[role].findIndex(s => s.name.toLowerCase() === name.toLowerCase());
-  if (existing >= 0) {
-    // Update signature for existing name
-    signers[role][existing].sig = sigDataURL;
-    saveToStorage(); buildDropdowns();
-    // Auto-select updated signer
-    document.getElementById(role + 'Select').value = existing;
-    selected[role] = existing;
-    onSignerSelect(role);
-  } else {
-    // Add new signer
-    signers[role].push({ name, role: role.toUpperCase(), sig: sigDataURL });
-    saveToStorage(); buildDropdowns();
-    const newIdx = signers[role].length - 1;
-    document.getElementById(role + 'Select').value = newIdx;
-    selected[role] = newIdx;
-    onSignerSelect(role);
-  }
-
-  togglePanel(role);
-  setStatus(`✓ ${name} saved and selected.`, 'success');
-}
-
-// ── PDF GENERATION ────────────────────────────────────────────────────────────
-
-function formatDate(raw) {
-  if (!raw) return '';
-  const d = new Date(raw + 'T00:00:00');
-  return d.toLocaleDateString('en-CA', { year: 'numeric', month: 'long', day: 'numeric' });
-}
-
-function setStatus(msg, type = '') {
-  const el = document.getElementById('status');
-  el.textContent = msg;
-  el.className = 'status ' + type;
-}
-
-async function generatePDF() {
-  const certType   = document.getElementById('certType').value;
-  const winner     = document.getElementById('awardWinner').value.trim();
-  const dateRaw    = document.getElementById('certDate').value;
-  const dsdIdx     = selected.dsd;
-  const rmIdx      = selected.rm;
-
-  if (!certType)  { setStatus('Please select a certificate type.', 'error'); return; }
-  if (!winner)    { setStatus('Please enter the Award Winner name.', 'error'); return; }
-  if (dsdIdx === null) { setStatus('Please select a DSD signer.', 'error'); return; }
-  if (rmIdx  === null) { setStatus('Please select an RM signer.',  'error'); return; }
-
-  const dsdSigner = signers.dsd[dsdIdx];
-  const rmSigner  = signers.rm[rmIdx];
-
-  const btn = document.getElementById('generateBtn');
-  btn.disabled = true;
-  setStatus('Generating certificate…');
-
-  try {
-    // ── Load PDF ──
-    // The PDF filename matches the certificate type value
-    const pdfUrl = encodeURIComponent(certType) + '.pdf';
-    let pdfBytes;
-    try {
-      pdfBytes = await fetch(pdfUrl).then(r => {
-        if (!r.ok) throw new Error(`PDF not found: ${pdfUrl}`);
-        return r.arrayBuffer();
-      });
-    } catch(e) {
-      setStatus(`Could not load PDF template "${certType}.pdf". Make sure the PDF files are in the same folder as this HTML file.`, 'error');
-      btn.disabled = false;
-      return;
-    }
-
-    const { PDFDocument, rgb } = PDFLib;
-    const pdfDoc = await PDFDocument.load(pdfBytes);
-    const form   = pdfDoc.getForm();
-
-    // ── Fill text fields ──
-    const textFields = {
-      'Award Winner': winner,
-      'Date':         formatDate(dateRaw),
-      'DSD':          dsdSigner.name,
-      'RM':           rmSigner.name,
+    const PRELOADED = {
+        dsd: ['Kelley Keene', 'Lynn Veld', 'Neda Chelehmalzadeh', 'Philippe Nobert', 'Rhian Holmes', 'Angelo Farneti', 'Jessica Quinn'],
+        rm: ['Adele Gouthro', 'Cassandra Beach', 'Chelsea KuhnGrise', 'Courtney Bell', 'Jade Smolenaars', 'Jennifer Vosper', 'Jessica Quinn', 'Jillian Mills', 'Jory Martin', 'Kevin Daoust', 'Sonia Miceli']
     };
-    for (const [fieldName, value] of Object.entries(textFields)) {
-      try { form.getTextField(fieldName).setText(value); }
-      catch(e) { console.warn(`Field "${fieldName}" skipped:`, e.message); }
+
+    let signers = { dsd: [], rm: [] };
+    let selected = { dsd: null, rm: null };
+    let canvasCtx = {};
+
+    function init() {
+        const saved = JSON.parse(localStorage.getItem('hl_signers') || '{"dsd":[], "rm":[]}');
+        ['dsd', 'rm'].forEach(role => {
+            const base = PRELOADED[role].map(name => {
+                const found = saved[role].find(s => s.name === name);
+                return found ? found : { name, sig: null };
+            });
+            signers[role] = base;
+        });
+        refreshDropdowns();
+        initCanvases();
+        document.getElementById('certDate').valueAsDate = new Date();
     }
 
-    // ── Embed signatures as images on top of signature fields ──
-    // We'll overlay the signature images near the DSD and RM fields
-    const pages = pdfDoc.getPages();
-    const page  = pages[0];
-
-    async function embedSig(sigDataURL, fieldName) {
-      if (!sigDataURL) return;
-      // Get field position
-      let fieldWidget;
-      try {
-        const field = form.getTextField(fieldName);
-        const widgets = field.acroField.getWidgets();
-        if (!widgets.length) return;
-        fieldWidget = widgets[0];
-      } catch(e) { return; }
-
-      const rect = fieldWidget.getRectangle();
-      // Embed image
-      let image;
-      if (sigDataURL.startsWith('data:image/png')) {
-        const base64 = sigDataURL.split(',')[1];
-        const bytes  = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
-        image = await pdfDoc.embedPng(bytes);
-      } else {
-        const base64 = sigDataURL.split(',')[1];
-        const bytes  = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
-        image = await pdfDoc.embedJpg(bytes);
-      }
-
-      const imgDims = image.scaleToFit(rect.width, rect.height * 1.8);
-      page.drawImage(image, {
-        x:      rect.x + (rect.width  - imgDims.width)  / 2,
-        y:      rect.y + (rect.height - imgDims.height) / 2,
-        width:  imgDims.width,
-        height: imgDims.height,
-        opacity: 0.92,
-      });
+    function refreshDropdowns() {
+        ['dsd', 'rm'].forEach(role => {
+            const sel = document.getElementById(role + 'Select');
+            sel.innerHTML = `<option value="" disabled selected>— Select ${role.toUpperCase()} —</option>`;
+            signers[role].forEach((s, i) => {
+                const opt = document.createElement('option');
+                opt.value = i;
+                opt.textContent = s.name + (s.sig ? ' ✓' : '');
+                sel.appendChild(opt);
+            });
+        });
     }
 
-    await embedSig(dsdSigner.sig, 'DSD');
-    await embedSig(rmSigner.sig,  'RM');
+    function onSignerSelect(role) {
+        const idx = document.getElementById(role + 'Select').value;
+        selected[role] = idx;
+        const s = signers[role][idx];
+        const prev = document.getElementById(role + 'Preview');
+        document.getElementById(role + 'SigName').textContent = s.name;
+        const img = document.getElementById(role + 'SigImg');
+        if (s.sig) { img.src = s.sig; img.style.display = 'block'; }
+        else { img.style.display = 'none'; }
+        prev.classList.add('visible');
+    }
 
-    // ── Save & download ──
-    const filledBytes = await pdfDoc.save();
-    const blob = new Blob([filledBytes], { type: 'application/pdf' });
-    const url  = URL.createObjectURL(blob);
-    const a    = document.createElement('a');
-    a.href     = url;
-    const safeName = winner.replace(/[^a-z0-9]/gi, '_');
-    a.download = `HearingLife_${certType.replace(/\s+/g,'_')}_${safeName}.pdf`;
-    a.click();
-    setTimeout(() => URL.revokeObjectURL(url), 10000);
+    function togglePanel(role) {
+        document.getElementById(role + 'Panel').classList.toggle('open');
+    }
 
-    setStatus(`✓ Certificate for "${winner}" downloaded successfully.`, 'success');
-  } catch(err) {
-    console.error(err);
-    setStatus('Error: ' + err.message, 'error');
-  } finally {
-    btn.disabled = false;
-  }
-}
+    function setMethod(role, method) {
+        const isUpload = method === 'upload';
+        document.getElementById(role + 'UploadArea').style.display = isUpload ? 'block' : 'none';
+        document.getElementById(role + 'Canvas').classList.toggle('visible', !isUpload);
+        document.querySelectorAll(`#${role}Panel .sig-method-tab`).forEach((btn, i) => {
+            btn.classList.toggle('active', (i === 0 && isUpload) || (i === 1 && !isUpload));
+        });
+    }
 
-// ── BOOT ─────────────────────────────────────────────────────────────────────
+    function initCanvases() {
+        ['dsd', 'rm'].forEach(role => {
+            const canvas = document.getElementById(role + 'Canvas');
+            const ctx = canvas.getContext('2d');
+            canvasCtx[role] = ctx;
+            let drawing = false;
 
-loadFromStorage();
-buildDropdowns();
-initCanvases();
+            const getPos = e => {
+                const r = canvas.getBoundingClientRect();
+                return { x: e.clientX - r.left, y: e.clientY - r.top };
+            };
 
-// Set today's date as default
-document.getElementById('certDate').valueAsDate = new Date();
+            canvas.onpointerdown = e => { 
+                drawing = true; 
+                ctx.beginPath(); 
+                const p = getPos(e); 
+                ctx.moveTo(p.x, p.y); 
+            };
+            canvas.onpointermove = e => { 
+                if(!drawing) return; 
+                const p = getPos(e); 
+                ctx.lineTo(p.x, p.y); 
+                ctx.stroke(); 
+            };
+            window.addEventListener('pointerup', () => drawing = false);
+        });
+    }
+
+    async function saveSigner(role) {
+        const name = document.getElementById(role + 'NewName').value;
+        if (!name) return alert("Enter a name");
+
+        let sig = null;
+        const isUpload = document.getElementById(role + 'UploadArea').style.display !== 'none';
+
+        if (isUpload) {
+            const file = document.getElementById(role + 'SigFile').files[0];
+            if (file) {
+                sig = await new Promise(r => { 
+                    const fr = new FileReader(); 
+                    fr.onload = e => r(e.target.result); 
+                    fr.readAsDataURL(file); 
+                });
+            }
+        } else {
+            sig = document.getElementById(role + 'Canvas').toDataURL();
+        }
+
+        const existingIdx = signers[role].findIndex(s => s.name === name);
+        if (existingIdx > -1) signers[role][existingIdx].sig = sig;
+        else signers[role].push({ name, sig });
+
+        localStorage.setItem('hl_signers', JSON.stringify(signers));
+        refreshDropdowns();
+        togglePanel(role);
+        setStatus(`Signer ${name} saved!`, 'success');
+    }
+
+    function setStatus(msg, type) {
+        const el = document.getElementById('status');
+        el.textContent = msg;
+        el.className = 'status ' + type;
+        if(type === 'success') setTimeout(() => el.textContent = "", 5000);
+    }
+
+    async function generatePDF() {
+        const type = document.getElementById('certType').value;
+        const winner = document.getElementById('awardWinner').value;
+        if(!type || !winner || selected.dsd === null || selected.rm === null) {
+            return setStatus("Please fill all fields and select signers.", "error");
+        }
+
+        const btn = document.getElementById('generateBtn');
+        btn.disabled = true;
+        setStatus("Creating PDF...", "");
+
+        try {
+            const url = encodeURIComponent(type) + '.pdf';
+            const bytes = await fetch(url).then(res => res.arrayBuffer());
+            const pdfDoc = await PDFLib.PDFDocument.load(bytes);
+            const form = pdfDoc.getForm();
+
+            const dVal = document.getElementById('certDate').value;
+            const dateStr = new Date(dVal + 'T12:00:00').toLocaleDateString('en-CA', { year:'numeric', month:'long', day:'numeric'});
+
+            form.getTextField('Award Winner').setText(winner);
+            form.getTextField('Date').setText(dateStr);
+            form.getTextField('DSD').setText(signers.dsd[selected.dsd].name);
+            form.getTextField('RM').setText(signers.rm[selected.rm].name);
+
+            // Overlay Signatures
+            const page = pdfDoc.getPages()[0];
+            const embed = async (role, fieldName) => {
+                const data = signers[role][selected[role]].sig;
+                if (!data) return;
+                const img = data.includes('png') ? await pdfDoc.embedPng(data) : await pdfDoc.embedJpg(data);
+                const field = form.getTextField(fieldName).acroField.getWidgets()[0].getRectangle();
+                const dims = img.scaleToFit(field.width, field.height * 2);
+                page.drawImage(img, {
+                    x: field.x + (field.width - dims.width)/2,
+                    y: field.y,
+                    width: dims.width,
+                    height: dims.height
+                });
+            };
+
+            await embed('dsd', 'DSD');
+            await embed('rm', 'RM');
+
+            const pdfBytes = await pdfDoc.save();
+            const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `Certificate_${winner.replace(/\s+/g, '_')}.pdf`;
+            link.click();
+            setStatus("Success!", "success");
+        } catch (e) {
+            setStatus("Error: Template not found in folder.", "error");
+            console.error(e);
+        }
+        btn.disabled = false;
+    }
+
+    init();
 </script>
 </body>
 </html>
