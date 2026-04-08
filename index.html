@@ -177,7 +177,7 @@
         prev.classList.add('visible');
     }
 
-    async function generatePDF() {
+   async function generatePDF() {
     const type = document.getElementById('certType').value;
     const winner = document.getElementById('awardWinner').value;
     if(!winner || selected.dsd === null || selected.rm === null) {
@@ -202,26 +202,29 @@
             year:'numeric', month:'long', day:'numeric'
         });
 
-        // 1. CALCULATE CENTERING FOR WINNER NAME
-        const fontSize = 34;
-        // Use a standard font to measure width for centering
+        // 1. DYNAMIC CENTERING FOR WINNER NAME
+        const fontSize = 42; // Slightly larger for impact
         const font = await pdfDoc.embedFont(PDFLib.StandardFonts.HelveticaBold);
         const textWidth = font.widthOfTextAtSize(winner, fontSize);
         const centerX = (width - textWidth) / 2;
 
-        // Draw Winner Name (Centered and below "awarded to" line)
+        // Positioned in the white space above the "In recognition..." text
         page.drawText(winner, { 
             x: centerX, 
-            y: height - 385, // Adjusted to sit centered under the award line
+            y: height - 330, 
             size: fontSize, 
             font: font,
             color: PDFLib.rgb(0.04, 0.12, 0.29) 
         });
 
-        // 2. DRAW DATE & SIGNER NAMES (Bottom area)
-        page.drawText(dateStr, { x: 445, y: 95, size: 11 });
-        page.drawText(signers.dsd[selected.dsd].name, { x: 60, y: 95, size: 10 });
-        page.drawText(signers.rm[selected.rm].name, { x: 250, y: 95, size: 10 });
+        // 2. BOTTOM ALIGNMENT (Date, Names, and Signatures)
+        const labelY = 70; // Position for the printed names below the lines
+        const sigY = 85;   // Position for the signature images to sit ON the lines
+
+        // Printed Names & Date
+        page.drawText(signers.dsd[selected.dsd].name, { x: 310, y: labelY, size: 10 });
+        page.drawText(signers.rm[selected.rm].name, { x: 535, y: labelY, size: 10 });
+        page.drawText(dateStr, { x: 520, y: 35, size: 11 }); // Date near the bottom "Date" label
 
         // 3. EMBED SIGNATURES
         const embed = async (role, x) => {
@@ -236,12 +239,18 @@
                 img = await pdfDoc.embedJpg(s.sig);
             } else { return; }
 
-            const dims = img.scaleToFit(140, 50);
-            page.drawImage(img, { x: x, y: 105, width: dims.width, height: dims.height });
+            const dims = img.scaleToFit(140, 55);
+            page.drawImage(img, { 
+                x: x, 
+                y: sigY, 
+                width: dims.width, 
+                height: dims.height 
+            });
         };
 
-        await embed('dsd', 60);
-        await embed('rm', 250);
+        // Aligning signatures with the Divisional Sales Director and Regional Manager lines
+        await embed('dsd', 310);
+        await embed('rm', 535);
 
         const pdfBytes = await pdfDoc.save();
         const blob = new Blob([pdfBytes], { type: 'application/pdf' });
