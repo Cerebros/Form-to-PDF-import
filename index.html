@@ -178,71 +178,84 @@
     }
 
     async function generatePDF() {
-        const type = document.getElementById('certType').value;
-        const winner = document.getElementById('awardWinner').value;
-        if(!winner || selected.dsd === null || selected.rm === null) {
-            return setStatus("Please fill all fields.", "error");
-        }
-
-        const btn = document.getElementById('generateBtn');
-        btn.disabled = true;
-        setStatus("Generating PDF...", "");
-
-        try {
-            const response = await fetch(`${encodeURIComponent(type)}.pdf`);
-            if(!response.ok) throw new Error("Template PDF not found");
-            const bytes = await response.arrayBuffer();
-            
-            const pdfDoc = await PDFLib.PDFDocument.load(bytes);
-            const page = pdfDoc.getPages()[0];
-            const { height } = page.getSize();
-
-            const dVal = document.getElementById('certDate').value;
-            const dateStr = new Date(dVal + 'T12:00:00').toLocaleDateString('en-CA', { 
-                year:'numeric', month:'long', day:'numeric'
-            });
-
-            // TEXT PLACEMENT (Calibrated to 2025/2026 templates)
-            page.drawText(winner, { x: 70, y: height - 415, size: 34, color: PDFLib.rgb(0.04, 0.12, 0.29) });
-            page.drawText(dateStr, { x: 445, y: 95, size: 11 });
-            page.drawText(signers.dsd[selected.dsd].name, { x: 60, y: 95, size: 10 });
-            page.drawText(signers.rm[selected.rm].name, { x: 250, y: 95, size: 10 });
-
-            // EMBED SIGNATURES
-            const embed = async (role, x) => {
-                const s = signers[role][selected[role]];
-                if (!s.sig) return;
-                
-                let img;
-                const extension = s.ext.toLowerCase();
-                if (extension === 'png') {
-                    img = await pdfDoc.embedPng(s.sig);
-                } else if (extension === 'jpg' || extension === 'jpeg') {
-                    img = await pdfDoc.embedJpg(s.sig);
-                } else {
-                    return; // Skip unsupported formats like .tif
-                }
-
-                const dims = img.scaleToFit(140, 50);
-                page.drawImage(img, { x: x, y: 105, width: dims.width, height: dims.height });
-            };
-
-            await embed('dsd', 60);
-            await embed('rm', 250);
-
-            const pdfBytes = await pdfDoc.save();
-            const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = `Certificate_${winner.replace(/\s+/g, '_')}.pdf`;
-            link.click();
-            setStatus("Success!", "success");
-        } catch (e) {
-            setStatus("Error: Check console or file names.", "error");
-            console.error(e);
-        }
-        btn.disabled = false;
+    const type = document.getElementById('certType').value;
+    const winner = document.getElementById('awardWinner').value;
+    if(!winner || selected.dsd === null || selected.rm === null) {
+        return setStatus("Please fill all fields.", "error");
     }
+
+    const btn = document.getElementById('generateBtn');
+    btn.disabled = true;
+    setStatus("Generating PDF...", "");
+
+    try {
+        const response = await fetch(`${encodeURIComponent(type)}.pdf`);
+        if(!response.ok) throw new Error("Template PDF not found");
+        const bytes = await response.arrayBuffer();
+        
+        const pdfDoc = await PDFLib.PDFDocument.load(bytes);
+        const page = pdfDoc.getPages()[0];
+        const { width, height } = page.getSize();
+
+        const dVal = document.getElementById('certDate').value;
+        const dateStr = new Date(dVal + 'T12:00:00').toLocaleDateString('en-CA', { 
+            year:'numeric', month:'long', day:'numeric'
+        });
+
+        // 1. CALCULATE CENTERING FOR WINNER NAME
+        const fontSize = 34;
+        // Use a standard font to measure width for centering
+        const font = await pdfDoc.embedFont(PDFLib.StandardFonts.HelveticaBold);
+        const textWidth = font.widthOfTextAtSize(winner, fontSize);
+        const centerX = (width - textWidth) / 2;
+
+        // Draw Winner Name (Centered and below "awarded to" line)
+        page.drawText(winner, { 
+            x: centerX, 
+            y: height - 385, // Adjusted to sit centered under the award line
+            size: fontSize, 
+            font: font,
+            color: PDFLib.rgb(0.04, 0.12, 0.29) 
+        });
+
+        // 2. DRAW DATE & SIGNER NAMES (Bottom area)
+        page.drawText(dateStr, { x: 445, y: 95, size: 11 });
+        page.drawText(signers.dsd[selected.dsd].name, { x: 60, y: 95, size: 10 });
+        page.drawText(signers.rm[selected.rm].name, { x: 250, y: 95, size: 10 });
+
+        // 3. EMBED SIGNATURES
+        const embed = async (role, x) => {
+            const s = signers[role][selected[role]];
+            if (!s.sig) return;
+            
+            let img;
+            const extension = s.ext.toLowerCase();
+            if (extension === 'png') {
+                img = await pdfDoc.embedPng(s.sig);
+            } else if (extension === 'jpg' || extension === 'jpeg') {
+                img = await pdfDoc.embedJpg(s.sig);
+            } else { return; }
+
+            const dims = img.scaleToFit(140, 50);
+            page.drawImage(img, { x: x, y: 105, width: dims.width, height: dims.height });
+        };
+
+        await embed('dsd', 60);
+        await embed('rm', 250);
+
+        const pdfBytes = await pdfDoc.save();
+        const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `Certificate_${winner.replace(/\s+/g, '_')}.pdf`;
+        link.click();
+        setStatus("Success!", "success");
+    } catch (e) {
+        setStatus("Error: Check file names or console.", "error");
+        console.error(e);
+    }
+    btn.disabled = false;
+}
 
     function setStatus(msg, type) {
         const el = document.getElementById('status');
