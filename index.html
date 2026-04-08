@@ -203,19 +203,26 @@
         });
 
         // 1. DYNAMIC CENTERING FOR WINNER NAME
-        const fontSize = 42; // Slightly larger for impact
-        const font = await pdfDoc.embedFont(PDFLib.StandardFonts.HelveticaBold);
-        const textWidth = font.widthOfTextAtSize(winner, fontSize);
-        const centerX = (width - textWidth) / 2;
+        // 1. DEFINE THE TARGET AREA (The white space to the left of the blue ribbon)
+// Based on your template, the white area ends at approximately x = 450
+const whiteAreaWidth = 450; 
 
-        // Positioned in the white space above the "In recognition..." text
-        page.drawText(winner, { 
-            x: centerX, 
-            y: height - 230, 
-            size: fontSize, 
-            font: font,
-            color: PDFLib.rgb(0.04, 0.12, 0.29) 
-        });
+const fontSize = 42;
+const font = await pdfDoc.embedFont(PDFLib.StandardFonts.HelveticaBold);
+const textWidth = font.widthOfTextAtSize(winner, fontSize);
+
+// 2. CALCULATE OFFSET X
+// This centers the name within the 0 to 450 range instead of the 0 to 842 range
+const centeredX = (whiteAreaWidth - textWidth) / 2;
+
+// Draw Winner Name
+page.drawText(winner, { 
+    x: centeredX, 
+    y: height - 230, 
+    size: fontSize, 
+    font: font,
+    color: PDFLib.rgb(0.04, 0.12, 0.29) 
+});
 
         // 2. BOTTOM ALIGNMENT (Date, Names, and Signatures)
         const labelY = 70; // Position for the printed names below the lines
