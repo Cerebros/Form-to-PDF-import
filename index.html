@@ -48,11 +48,11 @@
             <div class="field">
                 <label>Service Milestone</label>
                 <select id="certType">
-                    <option value="2026 -5 Year Life Changer Award Certificate">5 Year Award</option>
-                    <option value="2026 -10 Year Life Changer Award Certificate">10 Year Award</option>
-                    <option value="2026 -15 Year Life Changer Award Certificate">15 Year Award</option>
-                    <option value="2026 -20 Year Life Changer Award Certificate">20 Year Award</option>
-                    <option value="2026 -25 Year Life Changer Award Certificate">25 Year Award</option>
+                    <option value="2026 -5 Year Life Changer Award">5 Year Award</option>
+                    <option value="2026 -10 Year Life Changer Award">10 Year Award</option>
+                    <option value="2026 -15 Year Life Changer Award">15 Year Award</option>
+                    <option value="2026 -20 Year Life Changer Award">20 Year Award</option>
+                    <option value="2026 -25 Year Life Changer Award">25 Year Award</option>
                 </select>
             </div>
         </div>
@@ -83,7 +83,7 @@
 </div>
 
 <script>
-    // UPDATED: Matches your GitHub filenames and extensions exactly
+    // Exact mapping of names to extensions as seen in your GitHub screenshot
     const NAMES = {
         dsd: [
             { name: 'Kelley Keene', ext: 'jpg' },
@@ -97,7 +97,7 @@
         rm: [
             { name: 'Adele Gouthro', ext: 'jpg' },
             { name: 'Cassandra Beach', ext: 'jpg' },
-            { name: 'Chelsea Kuhn-Grise', ext: 'jpg' }, // Fixed hyphen from screenshot
+            { name: 'Chelsea Kuhn-Grise', ext: 'jpg' },
             { name: 'Courtney Bell', ext: 'jpeg' },
             { name: 'Jade Smolenaars', ext: 'jpg' },
             { name: 'Jennifer Vosper', ext: 'png' },
@@ -105,16 +105,17 @@
             { name: 'Jillian Mills', ext: 'PNG' },
             { name: 'Jory Martin', ext: 'png' },
             { name: 'Kevin Daoust', ext: 'png' },
-            { name: 'Sonia Miceli', ext: 'tif' } // Note: .tif may not display in all browsers
+            { name: 'Sonia Miceli', ext: 'tif' }
         ]
     };
 
     let signers = { dsd: [], rm: [] };
     let selected = { dsd: null, rm: null };
 
-    async function loadLocalSignature(name, ext) {
+    async function loadLocalSignature(person) {
         try {
-            const response = await fetch(`${encodeURIComponent(name)}.${ext}`);
+            const url = `${encodeURIComponent(person.name)}.${person.ext}`;
+            const response = await fetch(url);
             if (!response.ok) return null;
             const blob = await response.blob();
             return new Promise(resolve => {
@@ -122,26 +123,63 @@
                 reader.onloadend = () => resolve(reader.result);
                 reader.readAsDataURL(blob);
             });
-        } catch (e) { return null; }
+        } catch (e) {
+            console.warn(`Could not load signature for ${person.name}`);
+            return null; 
+        }
     }
 
     async function init() {
         document.getElementById('certDate').valueAsDate = new Date();
+        
+        // Loop through and load signatures individually
         for (let role of ['dsd', 'rm']) {
-            for (let person of NAMES[role]) {
-                const sig = await loadLocalSignature(person.name, person.ext);
-                signers[role].push({ name: person.name, sig, ext: person.ext });
+            const list = NAMES[role];
+            for (let person of list) {
+                const sigData = await loadLocalSignature(person);
+                signers[role].push({ 
+                    name: person.name, 
+                    sig: sigData, 
+                    ext: person.ext 
+                });
             }
         }
         refreshDropdowns();
     }
 
-    // ... refreshDropdowns and onSignerSelect remain the same ...
+    function refreshDropdowns() {
+        ['dsd', 'rm'].forEach(role => {
+            const sel = document.getElementById(role + 'Select');
+            sel.innerHTML = `<option value="" disabled selected>— Select ${role.toUpperCase()} —</option>`;
+            signers[role].forEach((s, i) => {
+                const opt = document.createElement('option');
+                opt.value = i;
+                // Add a checkmark if the signature image actually loaded
+                opt.textContent = s.name + (s.sig ? ' ✓' : ' (Image missing)');
+                sel.appendChild(opt);
+            });
+        });
+    }
+
+    function onSignerSelect(role) {
+        const idx = document.getElementById(role + 'Select').value;
+        selected[role] = idx;
+        const s = signers[role][idx];
+        const prev = document.getElementById(role + 'Preview');
+        document.getElementById(role + 'SigName').textContent = s.name;
+        const img = document.getElementById(role + 'SigImg');
+        if (s.sig) { 
+            img.src = s.sig; 
+            img.style.display = 'block'; 
+        } else { 
+            img.style.display = 'none'; 
+        }
+        prev.classList.add('visible');
+    }
 
     async function generatePDF() {
         const type = document.getElementById('certType').value;
         const winner = document.getElementById('awardWinner').value;
-        
         if(!winner || selected.dsd === null || selected.rm === null) {
             return setStatus("Please fill all fields.", "error");
         }
@@ -151,13 +189,10 @@
         setStatus("Generating PDF...", "");
 
         try {
-            // UPDATED: Matches your GitHub PDF filenames exactly
-            const fileName = `${type}.pdf`; 
-            const response = await fetch(encodeURIComponent(fileName));
-            
-            if(!response.ok) throw new Error(`File not found: ${fileName}`);
-            
+            const response = await fetch(`${encodeURIComponent(type)}.pdf`);
+            if(!response.ok) throw new Error("Template PDF not found");
             const bytes = await response.arrayBuffer();
+            
             const pdfDoc = await PDFLib.PDFDocument.load(bytes);
             const page = pdfDoc.getPages()[0];
             const { height } = page.getSize();
@@ -167,21 +202,26 @@
                 year:'numeric', month:'long', day:'numeric'
             });
 
-            // Text Placement - Calibrated to your 5-Year Template [cite: 5, 10]
+            // TEXT PLACEMENT (Calibrated to 2025/2026 templates)
             page.drawText(winner, { x: 70, y: height - 415, size: 34, color: PDFLib.rgb(0.04, 0.12, 0.29) });
             page.drawText(dateStr, { x: 445, y: 95, size: 11 });
             page.drawText(signers.dsd[selected.dsd].name, { x: 60, y: 95, size: 10 });
             page.drawText(signers.rm[selected.rm].name, { x: 250, y: 95, size: 10 });
 
+            // EMBED SIGNATURES
             const embed = async (role, x) => {
-                const data = signers[role][selected[role]].sig;
-                const ext = signers[role][selected[role]].ext.toLowerCase();
-                if (!data) return;
+                const s = signers[role][selected[role]];
+                if (!s.sig) return;
                 
                 let img;
-                if (ext === 'png') img = await pdfDoc.embedPng(data);
-                else if (ext === 'jpg' || ext === 'jpeg') img = await pdfDoc.embedJpg(data);
-                else return; // pdf-lib does not natively support .tif
+                const extension = s.ext.toLowerCase();
+                if (extension === 'png') {
+                    img = await pdfDoc.embedPng(s.sig);
+                } else if (extension === 'jpg' || extension === 'jpeg') {
+                    img = await pdfDoc.embedJpg(s.sig);
+                } else {
+                    return; // Skip unsupported formats like .tif
+                }
 
                 const dims = img.scaleToFit(140, 50);
                 page.drawImage(img, { x: x, y: 105, width: dims.width, height: dims.height });
@@ -198,12 +238,19 @@
             link.click();
             setStatus("Success!", "success");
         } catch (e) {
-            setStatus("Error: Template not found. Check GitHub filenames.", "error");
+            setStatus("Error: Check console or file names.", "error");
             console.error(e);
         }
         btn.disabled = false;
     }
-    // ... include other helper functions ...
+
+    function setStatus(msg, type) {
+        const el = document.getElementById('status');
+        el.textContent = msg;
+        el.className = 'status ' + type;
+    }
+
+    init();
 </script>
 </body>
 </html>
